@@ -1,0 +1,273 @@
+{
+  "entities": {
+    "Review": {
+      "title": "Review",
+      "description": "Public customer review displayed on the Sufrah Ravi website without exposing customer email.",
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string",
+          "description": "Customer display name",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "rating": {
+          "type": "number",
+          "description": "Star rating from 1 to 5"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Customer review text",
+          "minLength": 3,
+          "maxLength": 600
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether the review is verified by email submission"
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Flag indicating the review is public for listing"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the review was submitted"
+        }
+      },
+      "required": ["author", "rating", "comment", "verified", "isPublic", "createdAt"]
+    },
+    "ReviewPrivate": {
+      "title": "ReviewPrivate",
+      "description": "Isolated private record storing the reviewer's required email address (never publicly readable).",
+      "type": "object",
+      "properties": {
+        "reviewId": {
+          "type": "string",
+          "description": "ID of the corresponding public review document",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Reviewer's required email address kept private",
+          "minLength": 5,
+          "maxLength": 120,
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the private record was created"
+        }
+      },
+      "required": ["reviewId", "email", "createdAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order record for Order History and easy reordering (PII isolated in OrderPrivate).",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "description": "Human-readable order number (e.g., SR-4821)",
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "userId": {
+          "type": "string",
+          "description": "Identifier of the customer who placed the order",
+          "minLength": 2,
+          "maxLength": 128
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer display name",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "itemCodes": {
+          "type": "array",
+          "description": "Bounded list (max 20) of encoded order line items (menuItemId|quantity|selectedSpice|note)"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Order subtotal in SAR"
+        },
+        "deliveryFee": {
+          "type": "number",
+          "description": "Delivery fee in SAR"
+        },
+        "total": {
+          "type": "number",
+          "description": "Total order amount in SAR"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["cod", "card"],
+          "description": "Selected payment method"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Received", "Preparing", "Ready", "Delivered"],
+          "description": "Current kitchen/delivery status"
+        },
+        "isPublicOrder": {
+          "type": "boolean",
+          "description": "Query enforcer flag for listing orders"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the order was placed"
+        }
+      },
+      "required": [
+        "orderNumber",
+        "userId",
+        "customerName",
+        "itemCodes",
+        "subtotal",
+        "deliveryFee",
+        "total",
+        "paymentMethod",
+        "status",
+        "isPublicOrder",
+        "createdAt"
+      ]
+    },
+    "OrderPrivate": {
+      "title": "OrderPrivate",
+      "description": "Isolated private record storing customer phone and delivery address for an order.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "ID of the corresponding order document",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Customer phone number kept private",
+          "minLength": 5,
+          "maxLength": 30
+        },
+        "address": {
+          "type": "string",
+          "description": "Customer delivery address kept private",
+          "minLength": 3,
+          "maxLength": 300
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the private order record was created"
+        }
+      },
+      "required": ["orderId", "phone", "address", "createdAt"]
+    },
+    "UserAccount": {
+      "title": "UserAccount",
+      "description": "User authentication record storing display name and SHA-256 salted password hash (raw email isolated in UserPrivate).",
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "Deterministic SHA-256 identifier derived from normalized email",
+          "minLength": 10,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "User full name",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "passwordHash": {
+          "type": "string",
+          "description": "SHA-256 hex digest of salted password",
+          "minLength": 64,
+          "maxLength": 64,
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the account was registered"
+        }
+      },
+      "required": ["accountId", "name", "passwordHash", "createdAt"]
+    },
+    "UserPrivate": {
+      "title": "UserPrivate",
+      "description": "Isolated private record storing the registered user's email address.",
+      "type": "object",
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "description": "ID matching the UserAccount document",
+          "minLength": 10,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Registered user email address kept private",
+          "minLength": 5,
+          "maxLength": 120,
+          "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the private user record was created"
+        }
+      },
+      "required": ["accountId", "email", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/reviews/{reviewId}": {
+      "schema": {
+        "$ref": "#/entities/Review"
+      },
+      "description": "Public customer reviews collection (no PII/email stored here)."
+    },
+    "/review_private/{reviewId}": {
+      "schema": {
+        "$ref": "#/entities/ReviewPrivate"
+      },
+      "description": "Private collection storing the customer's email address required for review submission."
+    },
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Customer orders collection for Order History and one-click reordering (no phone/address PII stored here)."
+    },
+    "/order_private/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/OrderPrivate"
+      },
+      "description": "Private collection storing the customer's phone number and delivery address for an order."
+    },
+    "/user_accounts/{accountId}": {
+      "schema": {
+        "$ref": "#/entities/UserAccount"
+      },
+      "description": "User accounts collection for password verification (no raw email PII, no list queries allowed)."
+    },
+    "/user_private/{accountId}": {
+      "schema": {
+        "$ref": "#/entities/UserPrivate"
+      },
+      "description": "Private collection storing the registered user's email address."
+    }
+  }
+}

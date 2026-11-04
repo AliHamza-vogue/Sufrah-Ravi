@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          if (desc && desc.get && !desc.set && desc.configurable) {
+            var currentFetch = window.fetch;
+            Object.defineProperty(window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return currentFetch;
+              },
+              set: function (fn) {
+                if (typeof fn === 'function') {
+                  currentFetch = fn;
+                }
+              },
+            });
+          }
+        } catch (e) {}
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            if (
+              event &&
+              ((event.filename && event.filename.indexOf('chrome-extension://') === 0) ||
+                (event.message &&
+                  event.message.indexOf('Cannot set property fetch') !== -1))
+            ) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sufrah Ravi - سفرة راوي | Authentic Pakistani Homestyle Restaurant</title>
+    <meta name="description" content="Authentic Pakistani homestyle restaurant celebrating the rich culinary heritage of Pakistan. Order fresh Anda Paratha, Chicken Qorma, Karak Chai, and Lassi online." />
+    <meta property="og:title" content="Sufrah Ravi - سفرة راوي | Authentic Pakistani Homestyle Restaurant" />
+    <meta property="og:description" content="Authentic Pakistani homestyle restaurant celebrating the rich culinary heritage of Pakistan. Order fresh Anda Paratha, Chicken Qorma, Karak Chai, and Lassi online." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,224 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['author', 'rating', 'comment', 'verified', 'isPublic', 'createdAt'])
+        && data.keys().hasOnly(['author', 'rating', 'comment', 'verified', 'isPublic', 'createdAt'])
+        && data.author is string
+        && data.author.size() >= 2
+        && data.author.size() <= 60
+        && data.rating is int
+        && data.rating >= 1
+        && data.rating <= 5
+        && data.comment is string
+        && data.comment.size() >= 3
+        && data.comment.size() <= 600
+        && data.verified is bool
+        && data.verified == true
+        && data.isPublic is bool
+        && data.isPublic == true
+        && data.createdAt is timestamp;
+    }
+
+    function isValidReviewPrivate(data, reviewId) {
+      return data.keys().hasAll(['reviewId', 'email', 'createdAt'])
+        && data.keys().hasOnly(['reviewId', 'email', 'createdAt'])
+        && data.reviewId is string
+        && data.reviewId.size() >= 1
+        && data.reviewId.size() <= 128
+        && data.reviewId == reviewId
+        && data.email is string
+        && data.email.size() >= 5
+        && data.email.size() <= 120
+        && data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && data.createdAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll([
+          'orderNumber',
+          'userId',
+          'customerName',
+          'itemCodes',
+          'subtotal',
+          'deliveryFee',
+          'total',
+          'paymentMethod',
+          'status',
+          'isPublicOrder',
+          'createdAt'
+        ])
+        && data.keys().hasOnly([
+          'orderNumber',
+          'userId',
+          'customerName',
+          'itemCodes',
+          'subtotal',
+          'deliveryFee',
+          'total',
+          'paymentMethod',
+          'status',
+          'isPublicOrder',
+          'createdAt'
+        ])
+        && data.orderNumber is string
+        && data.orderNumber.size() >= 4
+        && data.orderNumber.size() <= 20
+        && data.userId is string
+        && data.userId.size() >= 2
+        && data.userId.size() <= 128
+        && data.customerName is string
+        && data.customerName.size() >= 2
+        && data.customerName.size() <= 60
+        && data.itemCodes is list
+        && data.itemCodes.size() >= 1
+        && data.itemCodes.size() <= 20
+        && data.itemCodes[0] is string
+        && data.itemCodes[0].size() >= 3
+        && data.itemCodes[0].size() <= 120
+        && data.subtotal is int
+        && data.subtotal >= 1
+        && data.subtotal <= 100000
+        && data.deliveryFee is int
+        && data.deliveryFee >= 0
+        && data.deliveryFee <= 1000
+        && data.total is int
+        && data.total >= 1
+        && data.total <= 101000
+        && data.paymentMethod is string
+        && (data.paymentMethod == 'cod' || data.paymentMethod == 'card')
+        && data.status is string
+        && (data.status == 'Received' || data.status == 'Preparing' || data.status == 'Ready' || data.status == 'Delivered')
+        && data.isPublicOrder is bool
+        && data.isPublicOrder == true
+        && data.createdAt is timestamp;
+    }
+
+    function isValidOrderPrivate(data, orderId) {
+      return data.keys().hasAll(['orderId', 'phone', 'address', 'createdAt'])
+        && data.keys().hasOnly(['orderId', 'phone', 'address', 'createdAt'])
+        && data.orderId is string
+        && data.orderId.size() >= 1
+        && data.orderId.size() <= 128
+        && data.orderId == orderId
+        && data.phone is string
+        && data.phone.size() >= 5
+        && data.phone.size() <= 30
+        && data.address is string
+        && data.address.size() >= 3
+        && data.address.size() <= 300
+        && data.createdAt is timestamp;
+    }
+
+    function isValidUserAccount(data, accountId) {
+      return data.keys().hasAll(['accountId', 'name', 'passwordHash', 'createdAt'])
+        && data.keys().hasOnly(['accountId', 'name', 'passwordHash', 'createdAt'])
+        && data.accountId is string
+        && data.accountId.size() >= 10
+        && data.accountId.size() <= 128
+        && data.accountId == accountId
+        && data.name is string
+        && data.name.size() >= 2
+        && data.name.size() <= 60
+        && data.passwordHash is string
+        && data.passwordHash.size() == 64
+        && data.passwordHash.matches('^[a-f0-9]{64}$')
+        && data.createdAt is timestamp;
+    }
+
+    function isValidUserPrivate(data, accountId) {
+      return data.keys().hasAll(['accountId', 'email', 'createdAt'])
+        && data.keys().hasOnly(['accountId', 'email', 'createdAt'])
+        && data.accountId is string
+        && data.accountId.size() >= 10
+        && data.accountId.size() <= 128
+        && data.accountId == accountId
+        && data.email is string
+        && data.email.size() >= 5
+        && data.email.size() <= 120
+        && data.email.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && data.createdAt is timestamp;
+    }
+
+    // Public Customer Reviews Collection (No PII / Email stored here)
+    match /reviews/{reviewId} {
+      allow get: if isValidId(reviewId) && existing().isPublic == true;
+      allow list: if existing().isPublic == true;
+      allow create: if isValidId(reviewId)
+        && isValidReview(incoming())
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/review_private/$(reviewId));
+      allow update, delete: if false;
+    }
+
+    // Isolated Private Reviewer Email Collection (Never publicly readable)
+    match /review_private/{reviewId} {
+      allow read: if false;
+      allow create: if isValidId(reviewId)
+        && isValidReviewPrivate(incoming(), reviewId)
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/reviews/$(reviewId));
+      allow update, delete: if false;
+    }
+
+    // Customer Orders Collection for Order History & Reordering (No phone/address PII stored here)
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && existing().isPublicOrder == true;
+      allow list: if existing().isPublicOrder == true;
+      allow create: if isValidId(orderId)
+        && isValidOrder(incoming())
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/order_private/$(orderId));
+      allow update, delete: if false;
+    }
+
+    // Isolated Private Order Contact & Delivery Collection (Never publicly readable)
+    match /order_private/{orderId} {
+      allow read: if false;
+      allow create: if isValidId(orderId)
+        && isValidOrderPrivate(incoming(), orderId)
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/orders/$(orderId));
+      allow update, delete: if false;
+    }
+
+    // User Accounts Collection (Single-doc lookup by email hash ID only; no list allowed; no raw email PII)
+    match /user_accounts/{accountId} {
+      allow get: if isValidId(accountId);
+      allow list: if false;
+      allow create: if isValidId(accountId)
+        && isValidUserAccount(incoming(), accountId)
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/user_private/$(accountId));
+      allow update, delete: if false;
+    }
+
+    // Isolated Private User Email Collection (Never publicly readable)
+    match /user_private/{accountId} {
+      allow read: if false;
+      allow create: if isValidId(accountId)
+        && isValidUserPrivate(incoming(), accountId)
+        && incoming().createdAt == request.time
+        && existsAfter(/databases/$(database)/documents/user_accounts/$(accountId));
+      allow update, delete: if false;
+    }
+  }
+}

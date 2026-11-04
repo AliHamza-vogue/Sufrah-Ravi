@@ -1,0 +1,6 @@
+{
+  "name": "Sufrah Ravi - سفرة راوي",
+  "description": "Authentic Pakistani Homestyle Restaurant for Sufrah Ravi (سفرة راوي) featuring fresh breakfast nashta, daal & sabzi, homestyle chicken, karak chai & lassi, and online ordering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
