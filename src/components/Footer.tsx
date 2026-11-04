@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, MapPin, Phone, Mail, Flame } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAssetUrl } from '../data/embeddedAssets';
 
 export const Footer: React.FC = () => {
   const { t, isArabic } = useLanguage();
@@ -14,7 +15,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#F5F2EB] border border-amber-600/40 overflow-hidden flex items-center justify-center">
               <img
-                src="/public/assets/aistudio/WhatsApp_Image_2026-11-04_at_11.48.52_AM_0c9b2a14.jpeg"
+                src={getAssetUrl('WhatsApp_Image_2026-11-04_at_11.48.52_AM_0c9b2a14.jpeg')}
                 alt="Sufrah Ravi Logo"
                 className="w-full h-full object-cover rounded-full mix-blend-multiply scale-[2.1] translate-y-2.5 -translate-x-0.5"
               />

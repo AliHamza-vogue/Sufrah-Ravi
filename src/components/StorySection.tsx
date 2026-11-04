@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, Utensils, Heart, Coffee } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAssetUrl } from '../data/embeddedAssets';
 
 export const StorySection: React.FC = () => {
   const { t, isArabic } = useLanguage();
@@ -13,34 +14,34 @@ export const StorySection: React.FC = () => {
         <div className="lg:col-span-6 grid grid-cols-2 gap-3 sm:gap-4 order-2 lg:order-1">
           <div className="space-y-3 sm:space-y-4">
             <img
-              src="/public/assets/aistudio/image_30fad4d6.png"
+              src={getAssetUrl('image_30fad4d6.png')}
               alt="Faisal Mosque Architecture"
               className="w-full h-40 sm:h-56 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />
             <img
-              src="/public/assets/aistudio/image_270cff7b.png"
+              src={getAssetUrl('image_270cff7b.png')}
               alt="Historic Food Street Heritage"
               className="w-full h-36 sm:h-44 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />
             <img
-              src="/public/assets/aistudio/image_ed5697ca.png"
+              src={getAssetUrl('image_ed5697ca.png')}
               alt="Pakistani Landscapes & Culinary Gatherings"
               className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />
           </div>
           <div className="space-y-3 sm:space-y-4 pt-4 sm:pt-6">
             <img
-              src="/public/assets/aistudio/image_20e297ba.png"
+              src={getAssetUrl('image_20e297ba.png')}
               alt="Golden Hour River & Mountain Valley"
               className="w-full h-36 sm:h-44 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />
             <img
-              src="/public/assets/aistudio/image_4e4fabd8.png"
+              src={getAssetUrl('image_4e4fabd8.png')}
               alt="Northern Peaks & Green Meadows"
               className="w-full h-40 sm:h-56 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />
             <img
-              src="/public/assets/aistudio/image_9f8e31ac.png"
+              src={getAssetUrl('image_9f8e31ac.png')}
               alt="Historic Forts & Architectural Monuments"
               className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-stone-200 dark:border-stone-800"
             />

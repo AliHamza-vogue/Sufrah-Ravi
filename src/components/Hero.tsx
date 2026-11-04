@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, Utensils, Flame, Clock, MapPin, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAssetUrl } from '../data/embeddedAssets';
 
 interface HeroProps {
   onStartOrder: () => void;
@@ -84,7 +85,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartOrder, onExploreStory }) => {
       {/* Background Image with Scrim */}
       <div className="absolute inset-0 z-0 opacity-40 mix-blend-luminosity">
         <img
-          src="/public/assets/aistudio/WhatsApp_Image_2026-11-04_at_9.49.37_AM_ae8be6bc.jpeg"
+          src={getAssetUrl('WhatsApp_Image_2026-11-04_at_9.49.37_AM_ae8be6bc.jpeg')}
           alt="Sufrah Ravi Storefront"
           className="w-full h-full object-cover"
         />
@@ -198,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartOrder, onExploreStory }) => {
           <div className="relative bg-stone-900/90 border border-stone-800 p-3.5 sm:p-4 rounded-3xl shadow-2xl backdrop-blur-md lg:transform lg:rotate-1 lg:hover:rotate-0 transition-transform duration-500 max-w-sm w-full space-y-3">
             <div className="relative h-60 sm:h-72 rounded-2xl overflow-hidden bg-stone-950">
               <img
-                src="/public/assets/aistudio/Gemini_Generated_Image_l5z3wsl5z3wsl5z3_7acef4d2.jpg"
+                src={getAssetUrl('Gemini_Generated_Image_l5z3wsl5z3wsl5z3_7acef4d2.jpg')}
                 alt="Sufrah Ravi Signature Dishes"
                 className="w-full h-full object-cover object-[center_15%]"
                 referrerPolicy="no-referrer"

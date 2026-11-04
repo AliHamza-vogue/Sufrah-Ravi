@@ -10,6 +10,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getAssetUrl } from '../data/embeddedAssets';
 
 interface NavbarProps {
   cartCount: number;
@@ -44,7 +45,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#F5F2EB] border border-amber-600/40 overflow-hidden flex items-center justify-center shadow-sm shrink-0">
             <img
-              src="/public/assets/aistudio/WhatsApp_Image_2026-11-04_at_11.48.52_AM_0c9b2a14.jpeg"
+              src={getAssetUrl('WhatsApp_Image_2026-11-04_at_11.48.52_AM_0c9b2a14.jpeg')}
               alt="Sufrah Ravi Logo"
               className="w-full h-full object-cover rounded-full mix-blend-multiply scale-[2.1] translate-y-2.5 -translate-x-0.5"
             />
