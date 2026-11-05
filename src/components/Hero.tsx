@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowRight, Utensils, Flame, Clock, MapPin, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getAssetUrl } from '../data/embeddedAssets';
+import { DishSteam } from './DishSteam';
 
 interface HeroProps {
   onStartOrder: () => void;
@@ -196,7 +197,7 @@ export const Hero: React.FC<HeroProps> = ({ onStartOrder, onExploreStory }) => {
 
         {/* Right Column: User Uploaded Dish Preview Card */}
         <div className="lg:col-span-5 flex justify-center">
-          <div className="relative bg-stone-900/90 border border-stone-800 p-3.5 sm:p-4 rounded-3xl shadow-2xl backdrop-blur-md lg:transform lg:rotate-1 lg:hover:rotate-0 transition-transform duration-500 max-w-sm w-full space-y-3">
+          <div className="group relative bg-stone-900/90 border border-stone-800 p-3.5 sm:p-4 rounded-3xl shadow-2xl backdrop-blur-md lg:transform lg:rotate-1 lg:hover:rotate-0 transition-transform duration-500 max-w-sm w-full space-y-3">
             <div className="relative h-60 sm:h-72 rounded-2xl overflow-hidden bg-stone-950">
               <img
                 src={getAssetUrl('Gemini_Generated_Image_l5z3wsl5z3wsl5z3_7acef4d2.jpg')}
@@ -204,8 +205,9 @@ export const Hero: React.FC<HeroProps> = ({ onStartOrder, onExploreStory }) => {
                 className="w-full h-full object-cover object-[center_15%]"
                 referrerPolicy="no-referrer"
               />
+              <DishSteam variant="hero" />
               <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent" />
-              <div className="absolute bottom-3 left-3 right-3 text-white">
+              <div className="absolute bottom-3 left-3 right-3 z-20 text-white">
                 <span className="text-[11px] font-bold bg-amber-600 px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
                   {t('Freshly Prepared Daily')}
                 </span>

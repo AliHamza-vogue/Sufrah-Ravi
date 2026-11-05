@@ -1,1 +1,86 @@
 @import "tailwindcss";
+
+@keyframes steamRiseLeft {
+  0% {
+    transform: translate3d(0, 14px, 0) scaleX(0.75) scaleY(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.65;
+  }
+  55% {
+    transform: translate3d(-12px, -38px, 0) scaleX(1.15) scaleY(1.05) rotate(-5deg);
+    opacity: 0.45;
+  }
+  85% {
+    opacity: 0.18;
+  }
+  100% {
+    transform: translate3d(8px, -92px, 0) scaleX(1.55) scaleY(1.35) rotate(6deg);
+    opacity: 0;
+  }
+}
+
+@keyframes steamRiseCenter {
+  0% {
+    transform: translate3d(0, 18px, 0) scaleX(0.8) scaleY(0.65);
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.72;
+  }
+  50% {
+    transform: translate3d(10px, -44px, 0) scaleX(1.22) scaleY(1.1) rotate(4deg);
+    opacity: 0.5;
+  }
+  82% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translate3d(-10px, -104px, 0) scaleX(1.65) scaleY(1.4) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes steamRiseRight {
+  0% {
+    transform: translate3d(0, 12px, 0) scaleX(0.7) scaleY(0.6);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.6;
+  }
+  60% {
+    transform: translate3d(14px, -36px, 0) scaleX(1.18) scaleY(1.08) rotate(6deg);
+    opacity: 0.42;
+  }
+  100% {
+    transform: translate3d(-6px, -88px, 0) scaleX(1.5) scaleY(1.3) rotate(-4deg);
+    opacity: 0;
+  }
+}
+
+.steam-plume-1 {
+  animation: steamRiseLeft 4.2s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+.steam-plume-2 {
+  animation: steamRiseCenter 4.8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation-delay: -1.4s;
+}
+
+.steam-plume-3 {
+  animation: steamRiseRight 4.5s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation-delay: -2.7s;
+}
+
+.steam-plume-4 {
+  animation: steamRiseCenter 3.9s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation-delay: -0.7s;
+}
+
+.steam-plume-5 {
+  animation: steamRiseLeft 5.1s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  animation-delay: -3.3s;
+}
+

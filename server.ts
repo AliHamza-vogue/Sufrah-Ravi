@@ -30,6 +30,11 @@ async function startServer() {
     res.json({ status: 'ok' });
   });
 
+  // Serve S-R.png favicon on /favicon.ico and /favicon.png requests
+  app.get(['/favicon.ico', '/favicon.png'], (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'favicon.svg'));
+  });
+
   // Auto-Translation Endpoint: Translates any English/Urdu text into Saudi Qassim Province Dialect (اللهجة القصيمية)
   app.post('/api/translate/qassimi', async (req, res) => {
     try {

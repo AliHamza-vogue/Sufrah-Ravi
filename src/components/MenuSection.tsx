@@ -3,6 +3,7 @@ import { MenuItem, CartItem } from '../types';
 import { MENU_ITEMS } from '../data/menuData';
 import { Search, Plus, Check, Flame, Coffee, Sparkles, Utensils } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { DishSteam } from './DishSteam';
 
 interface MenuSectionProps {
   onAddToCart: (item: CartItem) => void;
@@ -176,15 +177,18 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onAddToCart }) => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                   />
+                  {item.id !== 'chai-2' && item.nameEn !== 'Ghar Ki Lassi' && (
+                    <DishSteam variant="card" />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
                   
                   {item.popular && (
-                    <span className="absolute top-3 left-3 rtl:left-auto rtl:right-3 bg-amber-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
+                    <span className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-20 bg-amber-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
                       {t('Best Seller')}
                     </span>
                   )}
 
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+                  <div className="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between text-white">
                     {language === 'en' ? (
                       <span
                         data-no-translate="true"
