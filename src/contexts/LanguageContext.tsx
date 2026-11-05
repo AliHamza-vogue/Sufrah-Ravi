@@ -38,6 +38,10 @@ export const QASSIMI_DICTIONARY: Record<string, string> = {
   'Cart': 'السلة',
   'Logout': 'تسجيل خروج',
   'Log Out': 'تسجيل خروج',
+  'Ambience On': 'أجواء المطعم شغّالة',
+  'Ambience Muted': 'صوت الأجواء مكتوم',
+  'Mute kitchen ambience': 'كتم صوت أجواء المطعم',
+  'Unmute kitchen ambience': 'تشغيل صوت أجواء المطعم',
 
   // Hero Section (existing Arabic text removed when translated)
   'Authentic Taste from Pakistan · المذاق الأصيل من باكستان':

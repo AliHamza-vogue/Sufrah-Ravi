@@ -13,6 +13,7 @@ import { CheckoutModal } from './components/CheckoutModal';
 import { AuthModal, AuthenticatedUser } from './components/AuthModal';
 import { Footer } from './components/Footer';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AmbientSoundControl } from './components/AmbientSoundControl';
 
 const SESSION_STORAGE_KEY = 'sufrah_ravi_auth_session';
 
@@ -259,6 +260,9 @@ export default function App() {
 
         {/* Footer */}
         <Footer />
+
+        {/* Discreet Restaurant & Kitchen Ambience Mute/Unmute Control */}
+        <AmbientSoundControl />
 
       </div>
     </LanguageProvider>

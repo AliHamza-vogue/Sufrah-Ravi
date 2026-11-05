@@ -150,8 +150,8 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onAddToCart }) => {
         </div>
 
         {/* Menu Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {filteredItems.map((item) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 sm:gap-x-8 sm:gap-y-12 pt-4">
+          {filteredItems.map((item, idx) => {
             const isDrink = isBeverageWithSugar(item);
             const isBread = isBreadWithoutSpice(item);
             const spiceBadgeKey =
@@ -167,20 +167,23 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ onAddToCart }) => {
               <div
                 key={item.id}
                 onClick={() => handleOpenModal(item)}
-                className="group bg-white dark:bg-stone-950 rounded-2xl overflow-hidden border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer"
+                className="relative group bg-white dark:bg-stone-950 rounded-2xl overflow-visible border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer"
               >
-                {/* Image Container */}
-                <div className="relative h-48 overflow-hidden bg-stone-100 dark:bg-stone-900">
-                  <img
-                    src={item.image}
-                    alt={item.nameEn}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    referrerPolicy="no-referrer"
-                  />
+                {/* Image Container (overflow-visible so steam rises above the top edge) */}
+                <div className="relative h-48 overflow-visible">
                   {item.id !== 'chai-2' && item.nameEn !== 'Ghar Ki Lassi' && (
-                    <DishSteam variant="card" />
+                    <DishSteam variant="card" seed={idx + 1} />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
+
+                  <div className="relative w-full h-full rounded-t-2xl overflow-hidden bg-stone-100 dark:bg-stone-900">
+                    <img
+                      src={item.image}
+                      alt={item.nameEn}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-950/60 via-transparent to-transparent" />
+                  </div>
                   
                   {item.popular && (
                     <span className="absolute top-3 left-3 rtl:left-auto rtl:right-3 z-20 bg-amber-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow">
