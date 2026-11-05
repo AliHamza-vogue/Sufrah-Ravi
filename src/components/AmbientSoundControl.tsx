@@ -1,32 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { KITCHEN_SIZZLE_SIMMER_AUDIO_URI } from '../data/kitchenAudioData';
 
 export const AmbientSoundControl: React.FC = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const { t } = useLanguage();
 
+  const isPlayingRef = useRef(true);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
-  const smoothNoiseBufRef = useRef<AudioBuffer | null>(null);
-  const stirTimerRef = useRef<number | null>(null);
-  const bubbleTimerRef = useRef<number | null>(null);
-
-  const clearTimers = () => {
-    if (stirTimerRef.current) {
-      window.clearTimeout(stirTimerRef.current);
-      stirTimerRef.current = null;
-    }
-    if (bubbleTimerRef.current) {
-      window.clearTimeout(bubbleTimerRef.current);
-      bubbleTimerRef.current = null;
-    }
-  };
+  const decodedBufferRef = useRef<AudioBuffer | null>(null);
+  const activeSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isStartingRef = useRef(false);
 
   const stopSoundscape = () => {
-    clearTimers();
     const ctx = audioCtxRef.current;
     const master = masterGainRef.current;
+
     if (ctx && master && ctx.state === 'running') {
       try {
         const now = ctx.currentTime;
@@ -34,7 +26,7 @@ export const AmbientSoundControl: React.FC = () => {
         master.gain.setValueAtTime(master.gain.value, now);
         master.gain.linearRampToValueAtTime(0.0001, now + 0.35);
         window.setTimeout(() => {
-          if (ctx.state === 'running') {
+          if (!isPlayingRef.current && ctx.state === 'running') {
             ctx.suspend().catch(() => {});
           }
         }, 380);
@@ -42,266 +34,145 @@ export const AmbientSoundControl: React.FC = () => {
         ctx.suspend().catch(() => {});
       }
     }
+
+    if (fallbackAudioRef.current) {
+      fallbackAudioRef.current.pause();
+    }
   };
 
   const startSoundscape = async () => {
+    if (!isPlayingRef.current || isStartingRef.current) return;
+    isStartingRef.current = true;
+
     try {
       const AudioContextClass =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContextClass) return;
 
-      let ctx = audioCtxRef.current;
-      let master = masterGainRef.current;
+      if (AudioContextClass) {
+        let ctx = audioCtxRef.current;
+        let master = masterGainRef.current;
 
-      if (!ctx) {
-        ctx = new AudioContextClass();
-        audioCtxRef.current = ctx;
+        if (!ctx) {
+          ctx = new AudioContextClass();
+          audioCtxRef.current = ctx;
 
-        master = ctx.createGain();
-        master.gain.setValueAtTime(0.0001, ctx.currentTime);
-        master.connect(ctx.destination);
-        masterGainRef.current = master;
-
-        // Precompute a silky-smooth low-frequency velvet buffer (no harsh white noise static)
-        const sampleRate = ctx.sampleRate;
-        const bufLen = sampleRate * 3;
-        const buf = ctx.createBuffer(1, bufLen, sampleRate);
-        const data = buf.getChannelData(0);
-        let prev = 0;
-        let prev2 = 0;
-        for (let i = 0; i < bufLen; i++) {
-          const raw = Math.random() * 2 - 1;
-          // Double low-pass smoothing so the friction texture feels like smooth metal/wood on a clay/copper pot
-          prev = prev * 0.94 + raw * 0.06;
-          prev2 = prev2 * 0.92 + prev * 0.08;
-          data[i] = prev2 * 1.8;
+          master = ctx.createGain();
+          master.gain.setValueAtTime(0.0001, ctx.currentTime);
+          master.connect(ctx.destination);
+          masterGainRef.current = master;
         }
-        smoothNoiseBufRef.current = buf;
-      }
 
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
-
-      if (master) {
-        const now = ctx.currentTime;
-        master.gain.cancelScheduledValues(now);
-        master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), now);
-        master.gain.linearRampToValueAtTime(0.24, now + 0.8);
-      }
-
-      /**
-       * Acoustic synthesis of a Doi (cooking ladle) moving in circular strokes inside a Handi (pot):
-       * - Resonant pot body cavity (hollow warm formant sweep 280Hz -> 440Hz -> 310Hz)
-       * - Gentle metallic/wooden ladle sliding & turning thick gravy against the curved inner wall
-       * - Occasional soft ladle rim tap when finishing a stir cycle
-       */
-      const triggerDoiStroke = (duration: number, intensity: number, pitchOffset: number) => {
-        const activeCtx = audioCtxRef.current;
-        const activeMaster = masterGainRef.current;
-        const noiseBuf = smoothNoiseBufRef.current;
-        if (!activeCtx || !activeMaster || !noiseBuf || activeCtx.state !== 'running') return;
-
-        const now = activeCtx.currentTime;
-
-        const src = activeCtx.createBufferSource();
-        src.buffer = noiseBuf;
-        src.loop = true;
-
-        // Resonant cavity filter #1: The hollow body of the Handi pot
-        const handiBodyFilter = activeCtx.createBiquadFilter();
-        handiBodyFilter.type = 'bandpass';
-        handiBodyFilter.Q.setValueAtTime(3.8, now);
-        handiBodyFilter.frequency.setValueAtTime(260 + pitchOffset, now);
-        handiBodyFilter.frequency.exponentialRampToValueAtTime(
-          440 + pitchOffset,
-          now + duration * 0.48
-        );
-        handiBodyFilter.frequency.exponentialRampToValueAtTime(
-          280 + pitchOffset,
-          now + duration
-        );
-
-        // Resonant filter #2: The Doi ladle sliding against the inner wall & turning thick masala
-        const doiScrapeFilter = activeCtx.createBiquadFilter();
-        doiScrapeFilter.type = 'bandpass';
-        doiScrapeFilter.Q.setValueAtTime(5.2, now);
-        doiScrapeFilter.frequency.setValueAtTime(660 + pitchOffset * 1.4, now);
-        doiScrapeFilter.frequency.exponentialRampToValueAtTime(
-          1020 + pitchOffset * 1.5,
-          now + duration * 0.52
-        );
-        doiScrapeFilter.frequency.exponentialRampToValueAtTime(
-          700 + pitchOffset * 1.3,
-          now + duration
-        );
-
-        // Warm low-pass ceiling so it never sounds like static or distortion
-        const warmthLowpass = activeCtx.createBiquadFilter();
-        warmthLowpass.type = 'lowpass';
-        warmthLowpass.frequency.setValueAtTime(1250, now);
-
-        // Smooth bell-shaped stroke envelope (fade in as ladle pushes, fade out at end of circle)
-        const strokeEnv = activeCtx.createGain();
-        strokeEnv.gain.setValueAtTime(0.0001, now);
-        strokeEnv.gain.linearRampToValueAtTime(0.62 * intensity, now + duration * 0.35);
-        strokeEnv.gain.linearRampToValueAtTime(0.48 * intensity, now + duration * 0.68);
-        strokeEnv.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-        const scrapeGain = activeCtx.createGain();
-        scrapeGain.gain.setValueAtTime(0.55, now);
-
-        src.connect(handiBodyFilter);
-        src.connect(doiScrapeFilter);
-        handiBodyFilter.connect(warmthLowpass);
-        doiScrapeFilter.connect(scrapeGain);
-        scrapeGain.connect(warmthLowpass);
-        warmthLowpass.connect(strokeEnv);
-        strokeEnv.connect(activeMaster);
-
-        const startOffset = Math.random() * 1.5;
-        src.start(now, startOffset, duration + 0.05);
-      };
-
-      // Gentle resonant tap of the Doi against the Handi rim
-      const triggerHandiRimTouch = () => {
-        const activeCtx = audioCtxRef.current;
-        const activeMaster = masterGainRef.current;
-        if (!activeCtx || !activeMaster || activeCtx.state !== 'running') return;
-
-        const now = activeCtx.currentTime;
-        // Two modal frequencies of a heavy handi pot (fundamental + warm overtone)
-        const freqs = [395 + Math.random() * 25, 765 + Math.random() * 35];
-
-        freqs.forEach((f, idx) => {
-          const osc = activeCtx.createOscillator();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(f, now);
-
-          const env = activeCtx.createGain();
-          const peak = idx === 0 ? 0.095 : 0.042;
-          const decay = idx === 0 ? 0.12 : 0.065;
-
-          env.gain.setValueAtTime(0.0001, now);
-          env.gain.linearRampToValueAtTime(peak, now + 0.004);
-          env.gain.exponentialRampToValueAtTime(0.0001, now + decay);
-
-          osc.connect(env);
-          env.connect(activeMaster);
-          osc.start(now);
-          osc.stop(now + decay + 0.01);
-        });
-      };
-
-      // Rhythmic cycle of stirring a Handi with a Doi (forward swirl -> return swirl -> brief pause)
-      const scheduleStirringCycle = () => {
-        const activeCtx = audioCtxRef.current;
-        if (!activeCtx || activeCtx.state !== 'running') return;
-
-        const strokeDur = 0.52 + Math.random() * 0.18;
-        triggerDoiStroke(strokeDur, 0.95, 0);
-
-        // Second half of the circular stirring motion
-        window.setTimeout(() => {
-          if (audioCtxRef.current?.state === 'running') {
-            triggerDoiStroke(0.46 + Math.random() * 0.16, 0.75, -35);
+        if (!decodedBufferRef.current) {
+          const base64Part = KITCHEN_SIZZLE_SIMMER_AUDIO_URI.split(',')[1];
+          const binaryString = window.atob(base64Part);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
           }
-        }, Math.floor((strokeDur + 0.12) * 1000));
-
-        // Occasional gentle rim touch at the end of a stir
-        if (Math.random() < 0.45) {
-          window.setTimeout(() => {
-            if (audioCtxRef.current?.state === 'running') {
-              triggerHandiRimTouch();
-            }
-          }, Math.floor((strokeDur * 2 + 0.22) * 1000));
+          decodedBufferRef.current = await ctx.decodeAudioData(bytes.buffer.slice(0));
         }
 
-        stirTimerRef.current = window.setTimeout(
-          scheduleStirringCycle,
-          1650 + Math.random() * 950
-        );
-      };
-
-      // Soft, warm bubbling of thick Qorma / Daal gravy ("blub... blub...") inside the Handi
-      const scheduleGravyBubble = () => {
-        const activeCtx = audioCtxRef.current;
-        const activeMaster = masterGainRef.current;
-        if (!activeCtx || !activeMaster || activeCtx.state !== 'running') return;
-
-        const now = activeCtx.currentTime;
-        const bubbleDur = 0.055 + Math.random() * 0.035;
-        const startFreq = 145 + Math.random() * 75;
-        const endFreq = startFreq * (1.65 + Math.random() * 0.35);
-
-        const osc = activeCtx.createOscillator();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, now + bubbleDur);
-
-        const env = activeCtx.createGain();
-        env.gain.setValueAtTime(0.0001, now);
-        env.gain.linearRampToValueAtTime(0.065 + Math.random() * 0.035, now + bubbleDur * 0.35);
-        env.gain.exponentialRampToValueAtTime(0.0001, now + bubbleDur);
-
-        osc.connect(env);
-        env.connect(activeMaster);
-        osc.start(now);
-        osc.stop(now + bubbleDur + 0.01);
-
-        // Sometimes a double bubble pops together in thick curry
-        if (Math.random() < 0.4) {
-          const secondDelay = 0.07 + Math.random() * 0.06;
-          const osc2 = activeCtx.createOscillator();
-          osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(startFreq * 1.12, now + secondDelay);
-          osc2.frequency.exponentialRampToValueAtTime(
-            endFreq * 1.15,
-            now + secondDelay + bubbleDur * 0.85
-          );
-
-          const env2 = activeCtx.createGain();
-          env2.gain.setValueAtTime(0.0001, now + secondDelay);
-          env2.gain.linearRampToValueAtTime(0.048, now + secondDelay + bubbleDur * 0.3);
-          env2.gain.exponentialRampToValueAtTime(
-            0.0001,
-            now + secondDelay + bubbleDur * 0.85
-          );
-
-          osc2.connect(env2);
-          env2.connect(activeMaster);
-          osc2.start(now + secondDelay);
-          osc2.stop(now + secondDelay + bubbleDur);
+        if (ctx.state === 'suspended') {
+          await ctx.resume().catch(() => {});
         }
 
-        bubbleTimerRef.current = window.setTimeout(
-          scheduleGravyBubble,
-          280 + Math.random() * 520
-        );
-      };
+        if (!activeSourceRef.current && decodedBufferRef.current && master) {
+          const source = ctx.createBufferSource();
+          source.buffer = decodedBufferRef.current;
+          source.loop = true;
 
-      clearTimers();
-      scheduleStirringCycle();
-      scheduleGravyBubble();
+          const dur = decodedBufferRef.current.duration;
+          if (dur > 2) {
+            source.loopStart = 0.05;
+            source.loopEnd = dur - 0.05;
+          }
+
+          source.connect(master);
+          source.start(0, 0.05);
+          activeSourceRef.current = source;
+        }
+
+        if (master && isPlayingRef.current) {
+          const now = ctx.currentTime;
+          master.gain.cancelScheduledValues(now);
+          master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), now);
+          master.gain.linearRampToValueAtTime(0.48, now + 0.6);
+        }
+        isStartingRef.current = false;
+        return;
+      }
     } catch {
-      setIsPlaying(false);
+      // Fallback to standard HTMLAudioElement if Web Audio decode fails
+    }
+
+    try {
+      if (!fallbackAudioRef.current) {
+        const audio = new Audio(KITCHEN_SIZZLE_SIMMER_AUDIO_URI);
+        audio.loop = true;
+        audio.volume = 0.4;
+        fallbackAudioRef.current = audio;
+      }
+      if (isPlayingRef.current) {
+        await fallbackAudioRef.current.play().catch(() => {});
+      }
+    } catch {
+      // Ignore autoplay errors until first gesture
+    } finally {
+      isStartingRef.current = false;
     }
   };
 
   const handleToggle = () => {
     if (isPlaying) {
+      isPlayingRef.current = false;
       setIsPlaying(false);
       stopSoundscape();
     } else {
+      isPlayingRef.current = true;
       setIsPlaying(true);
       startSoundscape();
     }
   };
 
   useEffect(() => {
+    // Start audio immediately by default on mount
+    startSoundscape();
+
+    // If browser autoplay policy suspends AudioContext before first gesture,
+    // resume automatically on the user's very first interaction (if still enabled)
+    const unlockAudioOnGesture = () => {
+      if (!isPlayingRef.current) return;
+      const ctx = audioCtxRef.current;
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().then(() => {
+          startSoundscape();
+        }).catch(() => {});
+      } else if (!activeSourceRef.current) {
+        startSoundscape();
+      }
+    };
+
+    const events = ['pointerdown', 'touchstart', 'keydown', 'click', 'scroll'] as const;
+    events.forEach((evt) =>
+      window.addEventListener(evt, unlockAudioOnGesture, { passive: true })
+    );
+
     return () => {
-      clearTimers();
+      events.forEach((evt) =>
+        window.removeEventListener(evt, unlockAudioOnGesture)
+      );
+      if (activeSourceRef.current) {
+        try {
+          activeSourceRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      if (fallbackAudioRef.current) {
+        fallbackAudioRef.current.pause();
+      }
       if (audioCtxRef.current) {
         audioCtxRef.current.close().catch(() => {});
       }

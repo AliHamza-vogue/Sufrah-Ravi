@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
             <li className="flex items-start gap-2">
               <Mail className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-stone-200 block">{t('Orders & Catering')}</strong>
+                <strong className="text-stone-200 block">{t('For Orders')}</strong>
                 <a
                   href="mailto:order@sufrahravi.com"
                   dir="ltr"
