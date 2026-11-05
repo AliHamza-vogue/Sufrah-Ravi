@@ -420,6 +420,38 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({
           </div>
         )}
 
+        {/* Order & Support Contact Bar */}
+        <div className="bg-white dark:bg-stone-950 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-600 dark:text-stone-400 shadow-sm">
+          <span className="font-semibold text-stone-800 dark:text-stone-200">
+            {t('Need help with your order?')}
+          </span>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <span>
+              {t('Order Inquiries')}:{' '}
+              <a
+                href="mailto:order@sufrahravi.com"
+                dir="ltr"
+                data-no-translate="true"
+                className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+              >
+                order@sufrahravi.com
+              </a>
+            </span>
+            <span className="hidden sm:inline text-stone-300 dark:text-stone-700">·</span>
+            <span>
+              {t('Customer Support')}:{' '}
+              <a
+                href="mailto:support@sufrahravi.com"
+                dir="ltr"
+                data-no-translate="true"
+                className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+              >
+                support@sufrahravi.com
+              </a>
+            </span>
+          </div>
+        </div>
+
       </div>
     </section>
   );

@@ -197,6 +197,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>{t('Proceed to Checkout')}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </button>
+
+              <div className="pt-2 border-t border-stone-200/80 dark:border-stone-800 text-center text-[11px] text-stone-500 dark:text-stone-400 space-y-0.5">
+                <p>
+                  {t('Questions about your order?')}{' '}
+                  <a
+                    href="mailto:order@sufrahravi.com"
+                    dir="ltr"
+                    data-no-translate="true"
+                    className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  >
+                    order@sufrahravi.com
+                  </a>
+                </p>
+              </div>
             </div>
           )}
 

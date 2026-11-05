@@ -259,7 +259,7 @@ export const QASSIMI_DICTIONARY: Record<string, string> = {
   'Verifying Password...': 'جاري التأكد من كلمة المرور...',
   'Close': 'إغلاق',
 
-  // Footer
+  // Footer & Contact Emails
   'Your authentic destination for homestyle Pakistani comfort food, celebrating the rich culinary heritage of Pakistan. Fresh Tawa Rotis, Morning Nashta, and Karak Chai daily.':
     'وجهتك الأولى للأكل الباكستاني البيتي الأصيل على الكيف.. خبز صاج حار، فطور نشتا، وشاهي كرك مضبوط كل يوم.',
   'Opening Hours': 'أوقات العمل',
@@ -268,6 +268,13 @@ export const QASSIMI_DICTIONARY: Record<string, string> = {
   '6:00 AM – 12:00 PM': '٦:٠٠ الصبح – ١٢:٠٠ الظهر',
   'Heritage & Contact': 'الأصالة والتواصل',
   'Authentic Pakistani Heritage · KSA': 'تراث باكستاني أصيل · المملكة العربية السعودية',
+  'Orders & Catering': 'الطلبات والمناسبات',
+  'Customer Support': 'خدمة العملاء والدعم',
+  'Order Inquiries': 'استفسارات الطلبات',
+  'Support': 'الدعم الفني وخدمة العملاء',
+  'Need help with your order?': 'تبي مساعدة بطلبك؟',
+  'Questions about your order?': 'عندك استفسار عن طلبك؟',
+  'Need help with your account?': 'تبي مساعدة بحسابك؟',
   '© 2026 Sufrah Ravi (سفرة راوي). All rights reserved. Authentic taste from Pakistan.':
     '© ٢٠٢٦ سفرة راوي. جميع الحقوق محفوظة. الطعم الباكستاني الأصيل على الكيف.',
 };

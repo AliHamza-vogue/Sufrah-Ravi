@@ -62,7 +62,7 @@ export const Footer: React.FC = () => {
           <h4 className="text-sm font-bold text-stone-100 uppercase tracking-wider">
             {t('Heritage & Contact')}
           </h4>
-          <ul className="space-y-2.5 text-xs text-stone-400">
+          <ul className="space-y-3 text-xs text-stone-400">
             <li className="flex items-start gap-2">
               <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <span>{t('Authentic Pakistani Heritage · KSA')}</span>
@@ -73,7 +73,31 @@ export const Footer: React.FC = () => {
             </li>
             <li className="flex items-start gap-2">
               <Mail className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-              <span dir="ltr">orders@sufrahravi.com</span>
+              <div>
+                <strong className="text-stone-200 block">{t('Orders & Catering')}</strong>
+                <a
+                  href="mailto:order@sufrahravi.com"
+                  dir="ltr"
+                  data-no-translate="true"
+                  className="hover:text-amber-400 transition-colors"
+                >
+                  order@sufrahravi.com
+                </a>
+              </div>
+            </li>
+            <li className="flex items-start gap-2">
+              <Mail className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-stone-200 block">{t('Customer Support')}</strong>
+                <a
+                  href="mailto:support@sufrahravi.com"
+                  dir="ltr"
+                  data-no-translate="true"
+                  className="hover:text-amber-400 transition-colors"
+                >
+                  support@sufrahravi.com
+                </a>
+              </div>
             </li>
           </ul>
         </div>

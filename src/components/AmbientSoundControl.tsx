@@ -8,19 +8,23 @@ export const AmbientSoundControl: React.FC = () => {
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
-  const sizzleTimerRef = useRef<number | null>(null);
-  const kitchenTimerRef = useRef<number | null>(null);
+  const smoothNoiseBufRef = useRef<AudioBuffer | null>(null);
+  const stirTimerRef = useRef<number | null>(null);
+  const bubbleTimerRef = useRef<number | null>(null);
+
+  const clearTimers = () => {
+    if (stirTimerRef.current) {
+      window.clearTimeout(stirTimerRef.current);
+      stirTimerRef.current = null;
+    }
+    if (bubbleTimerRef.current) {
+      window.clearTimeout(bubbleTimerRef.current);
+      bubbleTimerRef.current = null;
+    }
+  };
 
   const stopSoundscape = () => {
-    if (sizzleTimerRef.current) {
-      window.clearTimeout(sizzleTimerRef.current);
-      sizzleTimerRef.current = null;
-    }
-    if (kitchenTimerRef.current) {
-      window.clearTimeout(kitchenTimerRef.current);
-      kitchenTimerRef.current = null;
-    }
-
+    clearTimers();
     const ctx = audioCtxRef.current;
     const master = masterGainRef.current;
     if (ctx && master && ctx.state === 'running') {
@@ -28,12 +32,12 @@ export const AmbientSoundControl: React.FC = () => {
         const now = ctx.currentTime;
         master.gain.cancelScheduledValues(now);
         master.gain.setValueAtTime(master.gain.value, now);
-        master.gain.linearRampToValueAtTime(0.0001, now + 0.45);
+        master.gain.linearRampToValueAtTime(0.0001, now + 0.35);
         window.setTimeout(() => {
           if (ctx.state === 'running') {
             ctx.suspend().catch(() => {});
           }
-        }, 480);
+        }, 380);
       } catch {
         ctx.suspend().catch(() => {});
       }
@@ -43,7 +47,8 @@ export const AmbientSoundControl: React.FC = () => {
   const startSoundscape = async () => {
     try {
       const AudioContextClass =
-        window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (!AudioContextClass) return;
 
       let ctx = audioCtxRef.current;
@@ -58,159 +63,227 @@ export const AmbientSoundControl: React.FC = () => {
         master.connect(ctx.destination);
         masterGainRef.current = master;
 
-        // Create a 4-second looping pink/brown noise buffer for room tone & gentle simmering
+        // Precompute a silky-smooth low-frequency velvet buffer (no harsh white noise static)
         const sampleRate = ctx.sampleRate;
-        const bufferLength = sampleRate * 4;
-        const pinkBuffer = ctx.createBuffer(1, bufferLength, sampleRate);
-        const pinkData = pinkBuffer.getChannelData(0);
-
-        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-        for (let i = 0; i < bufferLength; i++) {
-          const white = Math.random() * 2 - 1;
-          b0 = 0.99886 * b0 + white * 0.0555179;
-          b1 = 0.99332 * b1 + white * 0.0750759;
-          b2 = 0.96900 * b2 + white * 0.1538520;
-          b3 = 0.86650 * b3 + white * 0.3104856;
-          b4 = 0.55000 * b4 + white * 0.5329522;
-          b5 = -0.7616 * b5 - white * 0.0168980;
-          pinkData[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-          b6 = white * 0.115926;
+        const bufLen = sampleRate * 3;
+        const buf = ctx.createBuffer(1, bufLen, sampleRate);
+        const data = buf.getChannelData(0);
+        let prev = 0;
+        let prev2 = 0;
+        for (let i = 0; i < bufLen; i++) {
+          const raw = Math.random() * 2 - 1;
+          // Double low-pass smoothing so the friction texture feels like smooth metal/wood on a clay/copper pot
+          prev = prev * 0.94 + raw * 0.06;
+          prev2 = prev2 * 0.92 + prev * 0.08;
+          data[i] = prev2 * 1.8;
         }
-
-        // Layer 1: Warm Restaurant Dining Room Ambience (low-passed warm room murmur)
-        const roomSource = ctx.createBufferSource();
-        roomSource.buffer = pinkBuffer;
-        roomSource.loop = true;
-
-        const roomFilter = ctx.createBiquadFilter();
-        roomFilter.type = 'lowpass';
-        roomFilter.frequency.setValueAtTime(290, ctx.currentTime);
-
-        const roomGain = ctx.createGain();
-        roomGain.gain.setValueAtTime(0.45, ctx.currentTime);
-
-        roomSource.connect(roomFilter);
-        roomFilter.connect(roomGain);
-        roomGain.connect(master);
-        roomSource.start();
-
-        // Layer 2: Continuous Faint Tawa Simmer Bed
-        const simmerSource = ctx.createBufferSource();
-        simmerSource.buffer = pinkBuffer;
-        simmerSource.loop = true;
-
-        const simmerBand = ctx.createBiquadFilter();
-        simmerBand.type = 'bandpass';
-        simmerBand.frequency.setValueAtTime(2600, ctx.currentTime);
-        simmerBand.Q.setValueAtTime(1.2, ctx.currentTime);
-
-        const simmerLowpass = ctx.createBiquadFilter();
-        simmerLowpass.type = 'lowpass';
-        simmerLowpass.frequency.setValueAtTime(4400, ctx.currentTime);
-
-        const simmerGain = ctx.createGain();
-        simmerGain.gain.setValueAtTime(0.16, ctx.currentTime);
-
-        // Slow LFO to make the simmering breathe naturally
-        const lfo = ctx.createOscillator();
-        lfo.frequency.setValueAtTime(0.24, ctx.currentTime);
-        const lfoGain = ctx.createGain();
-        lfoGain.gain.setValueAtTime(0.05, ctx.currentTime);
-        lfo.connect(lfoGain);
-        lfoGain.connect(simmerGain.gain);
-        lfo.start();
-
-        simmerSource.connect(simmerBand);
-        simmerBand.connect(simmerLowpass);
-        simmerLowpass.connect(simmerGain);
-        simmerGain.connect(master);
-        simmerSource.start();
+        smoothNoiseBufRef.current = buf;
       }
 
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
 
-      // Smoothly ramp master volume to a whisper-quiet level (~0.032)
       if (master) {
         const now = ctx.currentTime;
         master.gain.cancelScheduledValues(now);
         master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), now);
-        master.gain.linearRampToValueAtTime(0.032, now + 1.4);
+        master.gain.linearRampToValueAtTime(0.24, now + 0.8);
       }
 
-      // Layer 3: Gentle Tawa Sizzle Micro-Droplets
-      const scheduleSizzleDroplet = () => {
+      /**
+       * Acoustic synthesis of a Doi (cooking ladle) moving in circular strokes inside a Handi (pot):
+       * - Resonant pot body cavity (hollow warm formant sweep 280Hz -> 440Hz -> 310Hz)
+       * - Gentle metallic/wooden ladle sliding & turning thick gravy against the curved inner wall
+       * - Occasional soft ladle rim tap when finishing a stir cycle
+       */
+      const triggerDoiStroke = (duration: number, intensity: number, pitchOffset: number) => {
+        const activeCtx = audioCtxRef.current;
+        const activeMaster = masterGainRef.current;
+        const noiseBuf = smoothNoiseBufRef.current;
+        if (!activeCtx || !activeMaster || !noiseBuf || activeCtx.state !== 'running') return;
+
+        const now = activeCtx.currentTime;
+
+        const src = activeCtx.createBufferSource();
+        src.buffer = noiseBuf;
+        src.loop = true;
+
+        // Resonant cavity filter #1: The hollow body of the Handi pot
+        const handiBodyFilter = activeCtx.createBiquadFilter();
+        handiBodyFilter.type = 'bandpass';
+        handiBodyFilter.Q.setValueAtTime(3.8, now);
+        handiBodyFilter.frequency.setValueAtTime(260 + pitchOffset, now);
+        handiBodyFilter.frequency.exponentialRampToValueAtTime(
+          440 + pitchOffset,
+          now + duration * 0.48
+        );
+        handiBodyFilter.frequency.exponentialRampToValueAtTime(
+          280 + pitchOffset,
+          now + duration
+        );
+
+        // Resonant filter #2: The Doi ladle sliding against the inner wall & turning thick masala
+        const doiScrapeFilter = activeCtx.createBiquadFilter();
+        doiScrapeFilter.type = 'bandpass';
+        doiScrapeFilter.Q.setValueAtTime(5.2, now);
+        doiScrapeFilter.frequency.setValueAtTime(660 + pitchOffset * 1.4, now);
+        doiScrapeFilter.frequency.exponentialRampToValueAtTime(
+          1020 + pitchOffset * 1.5,
+          now + duration * 0.52
+        );
+        doiScrapeFilter.frequency.exponentialRampToValueAtTime(
+          700 + pitchOffset * 1.3,
+          now + duration
+        );
+
+        // Warm low-pass ceiling so it never sounds like static or distortion
+        const warmthLowpass = activeCtx.createBiquadFilter();
+        warmthLowpass.type = 'lowpass';
+        warmthLowpass.frequency.setValueAtTime(1250, now);
+
+        // Smooth bell-shaped stroke envelope (fade in as ladle pushes, fade out at end of circle)
+        const strokeEnv = activeCtx.createGain();
+        strokeEnv.gain.setValueAtTime(0.0001, now);
+        strokeEnv.gain.linearRampToValueAtTime(0.62 * intensity, now + duration * 0.35);
+        strokeEnv.gain.linearRampToValueAtTime(0.48 * intensity, now + duration * 0.68);
+        strokeEnv.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        const scrapeGain = activeCtx.createGain();
+        scrapeGain.gain.setValueAtTime(0.55, now);
+
+        src.connect(handiBodyFilter);
+        src.connect(doiScrapeFilter);
+        handiBodyFilter.connect(warmthLowpass);
+        doiScrapeFilter.connect(scrapeGain);
+        scrapeGain.connect(warmthLowpass);
+        warmthLowpass.connect(strokeEnv);
+        strokeEnv.connect(activeMaster);
+
+        const startOffset = Math.random() * 1.5;
+        src.start(now, startOffset, duration + 0.05);
+      };
+
+      // Gentle resonant tap of the Doi against the Handi rim
+      const triggerHandiRimTouch = () => {
         const activeCtx = audioCtxRef.current;
         const activeMaster = masterGainRef.current;
         if (!activeCtx || !activeMaster || activeCtx.state !== 'running') return;
 
         const now = activeCtx.currentTime;
-        const dur = 0.014 + Math.random() * 0.022;
-        const bufSize = Math.floor(activeCtx.sampleRate * dur);
-        const dropBuf = activeCtx.createBuffer(1, bufSize, activeCtx.sampleRate);
-        const data = dropBuf.getChannelData(0);
-        for (let i = 0; i < bufSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.sin((Math.PI * i) / bufSize);
+        // Two modal frequencies of a heavy handi pot (fundamental + warm overtone)
+        const freqs = [395 + Math.random() * 25, 765 + Math.random() * 35];
+
+        freqs.forEach((f, idx) => {
+          const osc = activeCtx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now);
+
+          const env = activeCtx.createGain();
+          const peak = idx === 0 ? 0.095 : 0.042;
+          const decay = idx === 0 ? 0.12 : 0.065;
+
+          env.gain.setValueAtTime(0.0001, now);
+          env.gain.linearRampToValueAtTime(peak, now + 0.004);
+          env.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+
+          osc.connect(env);
+          env.connect(activeMaster);
+          osc.start(now);
+          osc.stop(now + decay + 0.01);
+        });
+      };
+
+      // Rhythmic cycle of stirring a Handi with a Doi (forward swirl -> return swirl -> brief pause)
+      const scheduleStirringCycle = () => {
+        const activeCtx = audioCtxRef.current;
+        if (!activeCtx || activeCtx.state !== 'running') return;
+
+        const strokeDur = 0.52 + Math.random() * 0.18;
+        triggerDoiStroke(strokeDur, 0.95, 0);
+
+        // Second half of the circular stirring motion
+        window.setTimeout(() => {
+          if (audioCtxRef.current?.state === 'running') {
+            triggerDoiStroke(0.46 + Math.random() * 0.16, 0.75, -35);
+          }
+        }, Math.floor((strokeDur + 0.12) * 1000));
+
+        // Occasional gentle rim touch at the end of a stir
+        if (Math.random() < 0.45) {
+          window.setTimeout(() => {
+            if (audioCtxRef.current?.state === 'running') {
+              triggerHandiRimTouch();
+            }
+          }, Math.floor((strokeDur * 2 + 0.22) * 1000));
         }
 
-        const src = activeCtx.createBufferSource();
-        src.buffer = dropBuf;
-
-        const bp = activeCtx.createBiquadFilter();
-        bp.type = 'bandpass';
-        bp.frequency.setValueAtTime(2800 + Math.random() * 2400, now);
-        bp.Q.setValueAtTime(2.2, now);
-
-        const g = activeCtx.createGain();
-        g.gain.setValueAtTime(0.06 + Math.random() * 0.08, now);
-
-        src.connect(bp);
-        bp.connect(g);
-        g.connect(activeMaster);
-        src.start(now);
-
-        sizzleTimerRef.current = window.setTimeout(
-          scheduleSizzleDroplet,
-          90 + Math.random() * 240
+        stirTimerRef.current = window.setTimeout(
+          scheduleStirringCycle,
+          1650 + Math.random() * 950
         );
       };
 
-      // Layer 4: Faint Distant Kitchen Activity (subtle warm ceramic/spoon touch)
-      const scheduleKitchenTouch = () => {
+      // Soft, warm bubbling of thick Qorma / Daal gravy ("blub... blub...") inside the Handi
+      const scheduleGravyBubble = () => {
         const activeCtx = audioCtxRef.current;
         const activeMaster = masterGainRef.current;
         if (!activeCtx || !activeMaster || activeCtx.state !== 'running') return;
 
         const now = activeCtx.currentTime;
-        const osc = activeCtx.createOscillator();
-        const baseFreq = 980 + Math.random() * 620;
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(baseFreq, now);
+        const bubbleDur = 0.055 + Math.random() * 0.035;
+        const startFreq = 145 + Math.random() * 75;
+        const endFreq = startFreq * (1.65 + Math.random() * 0.35);
 
-        const lp = activeCtx.createBiquadFilter();
-        lp.type = 'lowpass';
-        lp.frequency.setValueAtTime(1100, now);
+        const osc = activeCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(startFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(endFreq, now + bubbleDur);
 
         const env = activeCtx.createGain();
         env.gain.setValueAtTime(0.0001, now);
-        env.gain.exponentialRampToValueAtTime(0.022, now + 0.008);
-        env.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+        env.gain.linearRampToValueAtTime(0.065 + Math.random() * 0.035, now + bubbleDur * 0.35);
+        env.gain.exponentialRampToValueAtTime(0.0001, now + bubbleDur);
 
-        osc.connect(lp);
-        lp.connect(env);
+        osc.connect(env);
         env.connect(activeMaster);
         osc.start(now);
-        osc.stop(now + 0.15);
+        osc.stop(now + bubbleDur + 0.01);
 
-        kitchenTimerRef.current = window.setTimeout(
-          scheduleKitchenTouch,
-          3800 + Math.random() * 5200
+        // Sometimes a double bubble pops together in thick curry
+        if (Math.random() < 0.4) {
+          const secondDelay = 0.07 + Math.random() * 0.06;
+          const osc2 = activeCtx.createOscillator();
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(startFreq * 1.12, now + secondDelay);
+          osc2.frequency.exponentialRampToValueAtTime(
+            endFreq * 1.15,
+            now + secondDelay + bubbleDur * 0.85
+          );
+
+          const env2 = activeCtx.createGain();
+          env2.gain.setValueAtTime(0.0001, now + secondDelay);
+          env2.gain.linearRampToValueAtTime(0.048, now + secondDelay + bubbleDur * 0.3);
+          env2.gain.exponentialRampToValueAtTime(
+            0.0001,
+            now + secondDelay + bubbleDur * 0.85
+          );
+
+          osc2.connect(env2);
+          env2.connect(activeMaster);
+          osc2.start(now + secondDelay);
+          osc2.stop(now + secondDelay + bubbleDur);
+        }
+
+        bubbleTimerRef.current = window.setTimeout(
+          scheduleGravyBubble,
+          280 + Math.random() * 520
         );
       };
 
-      scheduleSizzleDroplet();
-      scheduleKitchenTouch();
+      clearTimers();
+      scheduleStirringCycle();
+      scheduleGravyBubble();
     } catch {
       setIsPlaying(false);
     }
@@ -228,7 +301,7 @@ export const AmbientSoundControl: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      stopSoundscape();
+      clearTimers();
       if (audioCtxRef.current) {
         audioCtxRef.current.close().catch(() => {});
       }

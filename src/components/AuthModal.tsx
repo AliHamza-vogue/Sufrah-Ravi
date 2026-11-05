@@ -229,6 +229,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <ShieldCheck className="w-4 h-4 shrink-0" />
                 <span>{t('Verified Sufrah Ravi Database Account')}</span>
               </div>
+              <div className="text-[11px] text-stone-500 dark:text-stone-400 pt-1">
+                {t('Customer Support')}:{' '}
+                <a
+                  href="mailto:support@sufrahravi.com"
+                  dir="ltr"
+                  data-no-translate="true"
+                  className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                >
+                  support@sufrahravi.com
+                </a>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -355,7 +366,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </form>
 
-            <div className="text-center pt-2">
+            <div className="text-center pt-2 space-y-2">
               <button
                 type="button"
                 onClick={() => {
@@ -368,6 +379,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   ? 'Already have an account? Sign In'
                   : "Don't have an account? Sign Up"}
               </button>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400 pt-2 border-t border-stone-100 dark:border-stone-900">
+                {t('Need help with your account?')}{' '}
+                <a
+                  href="mailto:support@sufrahravi.com"
+                  dir="ltr"
+                  data-no-translate="true"
+                  className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                >
+                  support@sufrahravi.com
+                </a>
+              </p>
             </div>
           </>
         )}

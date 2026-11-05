@@ -201,6 +201,36 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
             </div>
 
+            <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/50 rounded-2xl p-3.5 text-xs text-stone-600 dark:text-stone-400 space-y-1.5">
+              <p className="font-semibold text-stone-800 dark:text-stone-200">
+                {t('Need help with your order?')}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+                <span>
+                  {t('Order Inquiries')}:{' '}
+                  <a
+                    href="mailto:order@sufrahravi.com"
+                    dir="ltr"
+                    data-no-translate="true"
+                    className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  >
+                    order@sufrahravi.com
+                  </a>
+                </span>
+                <span>
+                  {t('Support')}:{' '}
+                  <a
+                    href="mailto:support@sufrahravi.com"
+                    dir="ltr"
+                    data-no-translate="true"
+                    className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  >
+                    support@sufrahravi.com
+                  </a>
+                </span>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3">
               {currentUser && (
                 <button
@@ -369,6 +399,32 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   </>
                 )}
               </button>
+
+              <div className="pt-2 border-t border-stone-100 dark:border-stone-900 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-stone-500 dark:text-stone-400">
+                <span>
+                  {t('Order Inquiries')}:{' '}
+                  <a
+                    href="mailto:order@sufrahravi.com"
+                    dir="ltr"
+                    data-no-translate="true"
+                    className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  >
+                    order@sufrahravi.com
+                  </a>
+                </span>
+                <span>·</span>
+                <span>
+                  {t('Support')}:{' '}
+                  <a
+                    href="mailto:support@sufrahravi.com"
+                    dir="ltr"
+                    data-no-translate="true"
+                    className="font-semibold text-amber-700 dark:text-amber-400 hover:underline"
+                  >
+                    support@sufrahravi.com
+                  </a>
+                </span>
+              </div>
             </form>
           </div>
         )}
