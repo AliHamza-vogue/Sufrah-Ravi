@@ -267,7 +267,6 @@ export const QASSIMI_DICTIONARY: Record<string, string> = {
   'Morning Nashta Special': 'فطور الصباح (النشتا)',
   '6:00 AM – 12:00 PM': '٦:٠٠ الصبح – ١٢:٠٠ الظهر',
   'Heritage & Contact': 'الأصالة والتواصل',
-  'Authentic Pakistani Heritage · KSA': 'تراث باكستاني أصيل · المملكة العربية السعودية',
   'For Orders': 'للطلبات',
   'Orders & Catering': 'الطلبات والمناسبات',
   'Customer Support': 'خدمة العملاء والدعم',

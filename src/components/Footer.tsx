@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, MapPin, Phone, Mail, Flame } from 'lucide-react';
+import { Clock, Phone, Mail, Flame } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getAssetUrl } from '../data/embeddedAssets';
 
@@ -57,16 +57,12 @@ export const Footer: React.FC = () => {
           </ul>
         </div>
 
-        {/* Col 3: Location & Contact */}
+        {/* Col 3: Contact */}
         <div className="space-y-4">
           <h4 className="text-sm font-bold text-stone-100 uppercase tracking-wider">
             {t('Heritage & Contact')}
           </h4>
           <ul className="space-y-3 text-xs text-stone-400">
-            <li className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-              <span>{t('Authentic Pakistani Heritage · KSA')}</span>
-            </li>
             <li className="flex items-start gap-2">
               <Phone className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <span dir="ltr">+966 XX XXX XXXX</span>
